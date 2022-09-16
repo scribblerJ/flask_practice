@@ -33,8 +33,16 @@ def index():            # 이하 함수를 실행한다
 @app.route('/read/<int:id>/')        # URL 중 변수로 받고 싶은 부분을 중괄호(<>)로 표기 (형식 지정 필요)
 def read(id):                       # 동명의 인자를 함수로 받아서 사용
     topic = [i for i in topics if i['id'] == int(id)][0]
-    update_btn = f'<p><a href="/update/{id}">update</a></p>'
-    return template(topic['title'], topic['body']+update_btn)
+    update_btn = f'<p><a href="/update/{id}/">update</a></p>'
+    delete_btn = f'<p><a href="/delete/{id}/">delete</a></p>'
+    return template(topic['title'], topic['body']+update_btn+delete_btn)
+
+@app.route('/delete/<int:id>/')
+def delete(id):
+    topic_idx= topics.index([i for i in topics if i['id'] == int(id)][0])
+    del topics[topic_idx]
+    return redirect('/')
+
 
 @app.route('/update/<int:id>/', methods=['GET', 'POST'])
 def update(id):
@@ -73,7 +81,6 @@ def create():
         topics.append({'id': next_topic_id, 'title': request.form['title'], 'body': request.form['body']})
         next_topic_id += 1
         return redirect(f'/read/{str(next_topic_id-1)}/')
-        # return topics
 
 app.run(debug=True)
 
