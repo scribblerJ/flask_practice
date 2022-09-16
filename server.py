@@ -30,12 +30,34 @@ def template(title, body):
 def index():            # 이하 함수를 실행한다
     return template('Welcome', 'Hello, Web')
 
-@app.route('/read/<id>/')        # URL 중 변수로 받고 싶은 부분을 중괄호(<>)로 표기
-def number_printer(id):          # 동명의 인자를 함수로 받아서 사용
+@app.route('/read/<int:id>/')        # URL 중 변수로 받고 싶은 부분을 중괄호(<>)로 표기 (형식 지정 필요)
+def read(id):                       # 동명의 인자를 함수로 받아서 사용
     topic = [i for i in topics if i['id'] == int(id)][0]
-    return template(topic['title'], topic['body'])
+    update_btn = f'<p><a href="/update/{id}">update</a></p>'
+    return template(topic['title'], topic['body']+update_btn)
 
-@app.route('/create/', methods=['GET', 'POST'])          # 
+@app.route('/update/<int:id>/', methods=['GET', 'POST'])
+def update(id):
+    topic = [i for i in topics if i['id'] == int(id)][0]
+    if request.method == 'GET':
+        content = f'''
+                <form action="/update/{id}/" method="POST">
+                    <p><input type="text" name="title" placeholder="title">{topic['title']}</p>
+                    <p><textarea name="body" placeholder="body">{topic['body']}</textarea></p>
+                    <p><input type="submit" value="update"><p>
+                </form>
+            '''
+        return template('update', content)
+    else:
+        topic = [i for i in topics if i['id'] == int(id)][0]
+        title = request.form['title'] if request.form['title'] != '' else topic['title']
+        body = request.form['body'] if request.form['body'] != '' else topic['body']
+        topics[topics.index(topic)] = {'id': id, 'title': title, 'body': body}
+        return redirect(f'/read/{id}/')
+        
+    
+
+@app.route('/create/', methods=['GET', 'POST'])
 def create():
     if request.method == 'GET':
         content = '''
